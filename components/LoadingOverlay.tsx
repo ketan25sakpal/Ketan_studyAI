@@ -18,20 +18,20 @@ const LoadingOverlay = ({
     return (
         <div className="loading-wrapper">
             <div className="loading-shadow-wrapper bg-white">
-                <div className="loading-shadow">
+                <div className="loading-shadow" role="status" aria-live="polite" aria-atomic="true">
                     <Loader2 className="loading-animation w-12 h-12 text-[#663820]" />
                     <h2 className="loading-title">{title}</h2>
                     
-                    <div className="loading-progress">
+                    <ul className="loading-progress" role="list" aria-live="polite">
                         {progress.map((item, index) => (
-                            <div key={index} className="loading-progress-item">
+                            <li key={index} className="loading-progress-item">
                                 {item.completed && <div className="loading-progress-status" />}
                                 <span className={item.completed ? "text-[var(--text-primary)] font-medium" : "text-[var(--text-muted)]"}>
-                                    {item.label}
+                                    {item.label} — {item.completed ? "completed" : "in progress"}
                                 </span>
-                            </div>
+                            </li>
                         ))}
-                    </div>
+                    </ul>
                 </div>
             </div>
         </div>

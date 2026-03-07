@@ -86,6 +86,10 @@ export const sampleBooks = [
     },
 ];
 
+// File validation constants
+export const MAX_PDF_BYTES = 50 * 1024 * 1024; // 50MB
+export const MAX_IMAGE_BYTES = 10 * 1024 * 1024; // 10MB
+
 // File validation helpers
 export const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 export const ACCEPTED_PDF_TYPES = ['application/pdf'];

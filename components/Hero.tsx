@@ -1,5 +1,6 @@
 import React from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { Plus } from 'lucide-react'
 
 const Hero = () => {
@@ -13,10 +14,10 @@ const Hero = () => {
                         Convert your books into interactive AI conversations. 
                         Listen, learn, and discuss your favorite reads.
                     </p>
-                    <button className="library-cta-primary">
+                    <Link href="/books/new" className="library-cta-primary">
                         <Plus className="w-5 h-5 mr-1" />
                         Add new book
-                    </button>
+                    </Link>
                 </div>
 
                 {/* Center Part */}

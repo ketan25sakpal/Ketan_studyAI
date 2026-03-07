@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -19,10 +19,18 @@ import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import LoadingOverlay from "@/components/LoadingOverlay";
 import { cn } from "@/lib/utils";
+import { MAX_IMAGE_BYTES, MAX_PDF_BYTES } from "@/lib/constant";
 
 const formSchema = z.object({
-  pdfFile: z.any().refine((file) => file instanceof File, "PDF file is required"),
-  coverImage: z.any().optional(),
+  pdfFile: z
+    .instanceof(File, { message: "PDF file is required" })
+    .refine((file) => file.type === "application/pdf", "Only PDF files are allowed")
+    .refine((file) => file.size <= MAX_PDF_BYTES, `PDF file must be less than ${MAX_PDF_BYTES / (1024 * 1024)}MB`),
+  coverImage: z
+    .instanceof(File)
+    .optional()
+    .refine((file) => !file || file.type.startsWith("image/"), "Only image files are allowed")
+    .refine((file) => !file || file.size <= MAX_IMAGE_BYTES, `Image file must be less than ${MAX_IMAGE_BYTES / (1024 * 1024)}MB`),
   title: z.string().min(1, "Title is required"),
   author: z.string().min(1, "Author name is required"),
   voice: z.string().min(1, "Please choose a voice"),
@@ -51,6 +59,9 @@ const UploadForm = () => {
   const [pdfName, setPdfName] = useState<string | null>(null);
   const [coverName, setCoverName] = useState<string | null>(null);
 
+  const pdfInputRef = useRef<HTMLInputElement | null>(null);
+  const coverInputRef = useRef<HTMLInputElement | null>(null);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -62,10 +73,13 @@ const UploadForm = () => {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
-    // Simulate API call
-    console.log(values);
-    await new Promise((resolve) => setTimeout(resolve, 3000));
-    setIsSubmitting(false);
+    try {
+      // Simulate API call
+      console.log(values);
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleFileChange = (
@@ -85,9 +99,11 @@ const UploadForm = () => {
     if (field === "pdfFile") {
         form.setValue("pdfFile", undefined);
         setPdfName(null);
+        if (pdfInputRef.current) pdfInputRef.current.value = "";
     } else {
         form.setValue("coverImage", undefined);
         setCoverName(null);
+        if (coverInputRef.current) coverInputRef.current.value = "";
     }
   };
 
@@ -115,6 +131,7 @@ const UploadForm = () => {
                       accept=".pdf"
                       className="hidden"
                       id="pdf-upload"
+                      ref={pdfInputRef}
                       onChange={(e) => handleFileChange(e, "pdfFile", field.onChange)}
                     />
                     {pdfName ? (
@@ -126,6 +143,7 @@ const UploadForm = () => {
                                 type="button" 
                                 onClick={() => removeFile("pdfFile")}
                                 className="upload-dropzone-remove"
+                                aria-label="Remove PDF file"
                             >
                                 <X size={18} />
                             </button>
@@ -163,6 +181,7 @@ const UploadForm = () => {
                       accept="image/*"
                       className="hidden"
                       id="cover-upload"
+                      ref={coverInputRef}
                       onChange={(e) => handleFileChange(e, "coverImage", field.onChange)}
                     />
                     {coverName ? (
@@ -174,6 +193,7 @@ const UploadForm = () => {
                                 type="button" 
                                 onClick={() => removeFile("coverImage")}
                                 className="upload-dropzone-remove"
+                                aria-label="Remove cover image"
                             >
                                 <X size={18} />
                             </button>
