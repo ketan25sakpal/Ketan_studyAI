@@ -116,12 +116,11 @@ export const saveBookSegments = async (bookId: string, clerkId: string, segments
     }
 }
 
-export const getBookBySlug = async (slug: string) => {
+export const getBookBySlug = async (slug: string, clerkId: string) => {
     try {
         await connectToDatabase();
 
-        const book = await Book.findOne({ slug }).lean();
-
+        const book = await Book.findOne({ slug, clerkId }).lean();
         if (!book) {
             return {
                 success: false,
