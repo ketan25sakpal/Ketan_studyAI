@@ -50,6 +50,8 @@ const VapiControls = ({ book }: { book: IBook }) => {
                         <button
                             onClick={isActive ? stop : start}
                             disabled={status === 'connecting'}
+                            aria-label={isActive ? "stop voice assistant" : "start voice assistant"}
+                            title={isActive ? "Stop Voice Assistant" : "Start Voice Assistant"}
                             className={`vapi-mic-btn ${isActive ? 'vapi-mic-btn-active' : 'vapi-mic-btn-inactive'}`}
                         >
                             {isActive ? (
