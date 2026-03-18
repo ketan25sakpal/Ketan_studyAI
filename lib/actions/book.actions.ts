@@ -7,6 +7,7 @@ import Book from "@/database/models/book.model";
 import BookSegment from "@/database/models/book-segment.model";
 import mongoose from "mongoose";
 import {revalidatePath} from "next/cache";
+import {getPlanLimits} from "@/lib/subscription-constants";
 
 
 export const getAllBooks = async (search?: string) => {
@@ -82,29 +83,23 @@ export const createBook = async (data: CreateBook) => {
             }
         }
 
-        // Todo: Check subscription limits before creating a book
-        const { getUserPlan } = await import("@/lib/subscription.server");
-        const { PLAN_LIMITS } = await import("@/lib/subscription-constants");
-
+        // Plan enforcement
+        const { getUserPlanServer } = await import("@/lib/subscription-utils");
         const { auth } = await import("@clerk/nextjs/server");
         const { userId } = await auth();
 
-        if (!userId || userId !== data.clerkId) {
+        if (!userId) {
             return { success: false, error: "Unauthorized" };
         }
 
-        const plan = await getUserPlan();
-        const limits = PLAN_LIMITS[plan];
+        const plan = await getUserPlanServer();
 
         const bookCount = await Book.countDocuments({ clerkId: userId });
 
-        if (bookCount >= limits.maxBooks) {
-            const { revalidatePath } = await import("next/cache");
-            revalidatePath("/");
-
+        if (bookCount >= plan.maxBooks) {
             return {
                 success: false,
-                error: `You have reached the maximum number of books allowed for your ${plan} plan (${limits.maxBooks}). Please upgrade to add more books.`,
+                error: `You have reached the maximum number of books allowed for your ${plan.slug} plan (${plan.maxBooks}). Please upgrade to add more books.`,
                 isBillingError: true,
             };
         }

@@ -29,7 +29,7 @@ export default async function BookDetailsPage({
   const book = result.data;
 
   return (
-      <div className="book-page-container mx-auto max-w-4xl px-4 py-8">
+      <div className="book-page-container mx-auto max-w-5xl px-4 py-8">
 
         {/* Floating Back Button */}
         <Link href="/" className="back-btn-floating">
