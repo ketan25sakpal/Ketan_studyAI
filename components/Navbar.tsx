@@ -9,6 +9,7 @@ import {SignedIn, SignedOut, SignInButton, SignUpButton, UserButton, useUser } f
 const navItems = [
     { label: "Library", href: "/" },
     { label: "Add New", href: "/books/new" },
+    { label: "Pricing", href: "/subscriptions" },
 ]
 
 const Navbar = () => {

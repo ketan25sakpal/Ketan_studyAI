@@ -49,7 +49,9 @@ export function useVapi(book: IBook) {
     const [currentMessage, setCurrentMessage] = useState('');
     const [currentUserMessage, setCurrentUserMessage] = useState('');
     const [duration, setDuration] = useState(0);
+    const [maxDuration, setMaxDuration] = useState(15 * 60); // Default 15 mins
     const [limitError, setLimitError] = useState<string | null>(null);
+    const [isBillingError, setIsBillingError] = useState(false);
 
     const timerRef = useRef<NodeJS.Timeout | null>(null);
     const startTimeRef = useRef<number | null>(null);
@@ -57,7 +59,7 @@ export function useVapi(book: IBook) {
     const isStoppingRef = useRef(false);
 
     // Keep refs in sync with latest values for use in callbacks
-    // const maxDurationRef = useLatestRef(limits.maxSessionMinutes * 60);
+    const maxDurationRef = useLatestRef(maxDuration);
     const durationRef = useLatestRef(duration);
     const voice = book.persona || DEFAULT_VOICE;
 
@@ -79,6 +81,11 @@ export function useVapi(book: IBook) {
                     if (startTimeRef.current) {
                         const newDuration = Math.floor((Date.now() - startTimeRef.current) / TIMER_INTERVAL_MS);
                         setDuration(newDuration);
+
+                        if (newDuration >= maxDurationRef.current) {
+                            stop();
+                            setLimitError('Session limit reached. Redirecting...');
+                        }
                     }
                 }, TIMER_INTERVAL_MS);
             },
@@ -241,6 +248,7 @@ export function useVapi(book: IBook) {
         }
 
         setLimitError(null);
+        setIsBillingError(false);
         setStatus('connecting');
 
         try {
@@ -249,13 +257,15 @@ export function useVapi(book: IBook) {
 
             if (!result.success) {
                 setLimitError(result.error || 'Session limit reached. Please upgrade your plan.');
+                setIsBillingError(!!result.isBillingError);
                 setStatus('idle');
                 return;
             }
 
             sessionIdRef.current = result.sessionId || null;
-            // Note: Server-returned maxDurationMinutes is informational only
-            // The actual limit is enforced by useLatestRef(limits.maxSessionMinutes * 60)
+            if (result.maxDurationMinutes) {
+                setMaxDuration(result.maxDurationMinutes * 60);
+            }
 
             const firstMessage = `Hey, good to meet you. Quick question before we dive in - have you actually read ${book.title} yet, or are we starting fresh?`;
 
@@ -302,15 +312,24 @@ export function useVapi(book: IBook) {
         }
     }, []);
 
-    const clearError = useCallback(() => {
-        setLimitError(null);
-    }, []);
-
+    // Effect to auto-stop when duration reaches maxDuration
     const isActive =
         status === 'starting' ||
         status === 'listening' ||
         status === 'thinking' ||
         status === 'speaking';
+
+    useEffect(() => {
+        if (isActive && duration >= maxDuration) {
+            stop();
+            setLimitError('Session limit reached. Redirecting...');
+        }
+    }, [duration, maxDuration, isActive, stop]);
+
+    const clearError = useCallback(() => {
+        setLimitError(null);
+    }, []);
+
 
     // Calculate remaining time
     // const maxDurationSeconds = limits.maxSessionMinutes * SECONDS_PER_MINUTE;
@@ -325,14 +344,13 @@ export function useVapi(book: IBook) {
         currentMessage,
         currentUserMessage,
         duration,
+        maxDuration,
         volumeLevel,
         start,
         stop,
         limitError,
+        isBillingError,
         clearError,
-        // maxDurationSeconds,
-        // remainingSeconds,
-        // showTimeWarning,
     };
 }
 

@@ -30,13 +30,13 @@ const Transcript = ({ messages, currentMessage, currentUserMessage }: Transcript
             <div className="transcript-container min-h-[400px]">
                 <div className="transcript-empty">
                     <Mic
-                        className="size-12 text-[#212a3b] mb-4"
+                        className="size-16 text-[#212a3b] mb-6 opacity-20"
                         strokeWidth={1.5}
                     />
-                    <p className="transcript-empty-text">
+                    <p className="transcript-empty-text text-2xl">
                         No conversation yet
                     </p>
-                    <p className="transcript-empty-hint">
+                    <p className="transcript-empty-hint text-lg">
                         Click the mic button above to start talking
                     </p>
                 </div>
@@ -50,15 +50,9 @@ const Transcript = ({ messages, currentMessage, currentUserMessage }: Transcript
                 {messages.map((msg, index) => (
                     <div
                         key={index}
-                        className={`transcript-message ${
-                            msg.role === 'user' ? 'transcript-message-user' : 'transcript-message-assistant'
-                        }`}
+                        className={`transcript-message ${msg.role === 'user' ? 'transcript-message-user' : 'transcript-message-assistant'}`}
                     >
-                        <div
-                            className={`transcript-bubble ${
-                                msg.role === 'user' ? 'transcript-bubble-user' : 'transcript-bubble-assistant'
-                            }`}
-                        >
+                        <div className={`transcript-bubble ${msg.role === 'user' ? 'transcript-bubble-user' : 'transcript-bubble-assistant'}`}>
                             {msg.content}
                         </div>
                     </div>

@@ -125,5 +125,15 @@ export interface EndSessionResult {
 export interface StartSessionResult {
     success: boolean;
     sessionId?: string;
+    maxDurationMinutes?: number;
     error?: string;
+    isBillingError?: boolean;
 }
+
+export type UserSubscriptionPlan = {
+    slug: string;
+    maxBooks: number;
+    maxSessionsPerMonth: number;
+    maxMinPerSession: number;
+    hasSessionHistory: boolean;
+};
